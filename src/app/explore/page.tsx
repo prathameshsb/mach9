@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, Suspense } from 'react'
 import dynamic from 'next/dynamic'
-import { Map, LayoutGrid, MessageCircle } from 'lucide-react'
+import { Map, LayoutGrid, MessageCircle, AlertTriangle } from 'lucide-react'
 import { useQueryState, useQueryStates, parseAsString, parseAsInteger } from 'nuqs'
 import type { Bridge, BridgeFilters, ConditionLevel } from '@/lib/types'
 import SearchBar from '@/components/bridges/SearchBar'
@@ -10,6 +10,8 @@ import FilterPanel from '@/components/bridges/FilterPanel'
 import BridgeGrid from '@/components/bridges/BridgeGrid'
 import BridgeDetail from '@/components/bridges/BridgeDetail'
 import ChatPanel from '@/components/chat/ChatPanel'
+import StatsSidebar from '@/components/bridges/StatsSidebar/StatsSidebar'
+import WorstBridges from '@/components/bridges/WorstBridges/WorstBridges'
 import { cn } from '@/lib/utils'
 
 const BridgeMap = dynamic(() => import('@/components/bridges/BridgeMap'), {
@@ -131,6 +133,7 @@ function ExploreContent() {
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg border border-gray-200 overflow-hidden">
             <button
+              type="button"
               onClick={() => setView('grid')}
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors',
@@ -141,6 +144,7 @@ function ExploreContent() {
               Grid
             </button>
             <button
+              type="button"
               onClick={() => setView('map')}
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors',
@@ -150,9 +154,21 @@ function ExploreContent() {
               <Map className="h-3.5 w-3.5" />
               Map
             </button>
+            <button
+              type="button"
+              onClick={() => setView('worst')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors',
+                view === 'worst' ? 'bg-red-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'
+              )}
+            >
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Worst
+            </button>
           </div>
 
           <button
+            type="button"
             onClick={() => setChatOpen(prev => !prev)}
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors',
@@ -183,6 +199,7 @@ function ExploreContent() {
             isOpen={filterPanelOpen}
             onToggle={() => setFilterPanelOpen(v => !v)}
           />
+          <StatsSidebar filters={filters} />
         </aside>
 
         {/* Main content */}
@@ -200,6 +217,10 @@ function ExploreContent() {
                 onClearFilters={handleClearFilters}
                 selectedId={selectedId}
               />
+            </div>
+          ) : view === 'worst' ? (
+            <div className="h-full overflow-y-auto">
+              <WorstBridges filters={filters} />
             </div>
           ) : (
             <div className="h-full" style={{ isolation: 'isolate' }}>

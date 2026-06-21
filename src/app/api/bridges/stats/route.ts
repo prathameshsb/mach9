@@ -1,35 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { PA_COUNTIES } from '@/lib/utils'
 
-const PAGE_SIZE = 50
+function classify(overall_cond: number | null): 'good' | 'fair' | 'poor' | 'unknown' {
+  if (overall_cond === null || overall_cond === undefined) return 'unknown'
+  if (overall_cond >= 7) return 'good'
+  if (overall_cond >= 5) return 'fair'
+  return 'poor'
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const q = searchParams.get('q') || ''
     const county = searchParams.get('county') || ''
     const condition = searchParams.get('condition') || ''
     const year_min = searchParams.get('year_min') || ''
     const year_max = searchParams.get('year_max') || ''
     const deficient = searchParams.get('deficient') || ''
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
-    const VALID_SORT = new Set(['year_built', 'overall_cond', 'adt', 'structure_length', 'sufficiency_rating'])
-    const rawSort = searchParams.get('sort') || 'year_built'
-    const sort = VALID_SORT.has(rawSort) ? rawSort : 'year_built'
-    const order = searchParams.get('order') === 'asc' ? true : false
-
-    const from = (page - 1) * PAGE_SIZE
-    const to = from + PAGE_SIZE - 1
 
     let query = supabase
       .from('bridges')
-      .select('*', { count: 'exact' })
-      .range(from, to)
-      .order(sort, { ascending: order })
-
-    if (q) {
-      query = query.textSearch('search_vector', q, { type: 'websearch', config: 'english' })
-    }
+      .select('id, overall_cond, county_code')
 
     if (county) {
       query = query.eq('county_code', county)
@@ -56,21 +47,41 @@ export async function GET(request: NextRequest) {
       query = query.eq('structural_deficiency', true)
     }
 
-    const { data, count, error } = await query
+    const { data, error } = await query
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const totalCount = count ?? 0
-    return NextResponse.json({
-      data: data ?? [],
-      count: totalCount,
-      page,
-      pageSize: PAGE_SIZE,
-      totalPages: Math.ceil(totalCount / PAGE_SIZE),
-    })
-  } catch (err) {
+    const rows = data ?? []
+
+    const conditionBreakdown = { good: 0, fair: 0, poor: 0, unknown: 0, total: rows.length }
+    const countyMap = new Map<string, { good: number; fair: number; poor: number; unknown: number; total: number }>()
+
+    for (const row of rows) {
+      const bucket = classify(row.overall_cond)
+      conditionBreakdown[bucket]++
+
+      const code = row.county_code ?? ''
+      if (!countyMap.has(code)) {
+        countyMap.set(code, { good: 0, fair: 0, poor: 0, unknown: 0, total: 0 })
+      }
+      const entry = countyMap.get(code)!
+      entry[bucket]++
+      entry.total++
+    }
+
+    const counties = Array.from(countyMap.entries())
+      .map(([county_code, counts]) => ({
+        county_code,
+        county_name: PA_COUNTIES[county_code] ?? county_code,
+        ...counts,
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 20)
+
+    return NextResponse.json({ condition: conditionBreakdown, counties })
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -61,3 +61,26 @@ export interface ChatMessage {
   content: string
   filters?: BridgeFilters
 }
+
+export interface ConditionStats {
+  good: number
+  fair: number
+  poor: number
+  unknown: number
+  total: number
+}
+
+export interface CountyStat {
+  county_code: string
+  county_name: string
+  total: number
+  good: number
+  fair: number
+  poor: number
+  unknown: number
+}
+
+export interface StatsApiResponse {
+  condition: ConditionStats
+  counties: CountyStat[]
+}
