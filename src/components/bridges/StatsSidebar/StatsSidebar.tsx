@@ -51,6 +51,7 @@ export default function StatsSidebar({ filters }: StatsSidebarProps) {
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide hover:bg-gray-100 transition-colors"
       >

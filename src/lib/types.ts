@@ -84,3 +84,16 @@ export interface StatsApiResponse {
   condition: ConditionStats
   counties: CountyStat[]
 }
+
+export interface CountySummary {
+  county_code: string
+  county_name: string
+  total: number
+  avg_condition: number | null
+  pct_deficient: number
+  pct_pre_1970: number
+}
+
+export interface CountySummaryApiResponse {
+  data: CountySummary[]
+}

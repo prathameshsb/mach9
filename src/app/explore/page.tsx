@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, Suspense } from 'react'
 import dynamic from 'next/dynamic'
-import { Map, LayoutGrid, MessageCircle, AlertTriangle } from 'lucide-react'
+import { Map, LayoutGrid, MessageCircle, AlertTriangle, BarChart2 } from 'lucide-react'
 import { useQueryState, useQueryStates, parseAsString, parseAsInteger } from 'nuqs'
 import type { Bridge, BridgeFilters, ConditionLevel } from '@/lib/types'
 import SearchBar from '@/components/bridges/SearchBar'
@@ -12,6 +12,7 @@ import BridgeDetail from '@/components/bridges/BridgeDetail'
 import ChatPanel from '@/components/chat/ChatPanel'
 import StatsSidebar from '@/components/bridges/StatsSidebar/StatsSidebar'
 import WorstBridges from '@/components/bridges/WorstBridges/WorstBridges'
+import CountyComparison from '@/components/bridges/CountyComparison/CountyComparison'
 import { cn } from '@/lib/utils'
 
 const BridgeMap = dynamic(() => import('@/components/bridges/BridgeMap'), {
@@ -165,6 +166,17 @@ function ExploreContent() {
               <AlertTriangle className="h-3.5 w-3.5" />
               Worst
             </button>
+            <button
+              type="button"
+              onClick={() => setView('counties')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors',
+                view === 'counties' ? 'bg-blue-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'
+              )}
+            >
+              <BarChart2 className="h-3.5 w-3.5" />
+              Counties
+            </button>
           </div>
 
           <button
@@ -221,6 +233,10 @@ function ExploreContent() {
           ) : view === 'worst' ? (
             <div className="h-full overflow-y-auto">
               <WorstBridges filters={filters} />
+            </div>
+          ) : view === 'counties' ? (
+            <div className="h-full overflow-y-auto">
+              <CountyComparison />
             </div>
           ) : (
             <div className="h-full" style={{ isolation: 'isolate' }}>

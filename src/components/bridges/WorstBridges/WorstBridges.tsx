@@ -12,6 +12,7 @@ interface WorstBridgesProps {
 export default function WorstBridges({ filters }: WorstBridgesProps) {
   const [bridges, setBridges] = useState<Bridge[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams({
@@ -27,15 +28,16 @@ export default function WorstBridges({ filters }: WorstBridgesProps) {
     if (filters.condition) params.set('condition', filters.condition)
 
     setLoading(true)
+    setError(false)
 
     fetch(`/api/bridges?${params.toString()}`)
-      .then((res) => res.json())
-      .then((json) => {
-        setBridges(json.data ?? [])
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
       })
-      .finally(() => {
-        setLoading(false)
-      })
+      .then((json) => setBridges(json.data ?? []))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
   }, [filters.county, filters.year_min, filters.year_max, filters.condition])
 
   return (
@@ -71,6 +73,12 @@ export default function WorstBridges({ filters }: WorstBridgesProps) {
                   <td className="px-4 py-3"><div className="h-4 w-16 rounded bg-gray-100" /></td>
                 </tr>
               ))
+            ) : error ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-sm text-red-400">
+                  Failed to load bridges. Please try refreshing.
+                </td>
+              </tr>
             ) : bridges.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-sm text-gray-500">
