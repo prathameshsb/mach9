@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, Suspense } from 'react'
 import dynamic from 'next/dynamic'
-import { Map, LayoutGrid, MessageCircle, AlertTriangle, BarChart2 } from 'lucide-react'
+import { Map, LayoutGrid, MessageCircle, AlertTriangle, BarChart2, TrendingUp } from 'lucide-react'
 import { useQueryState, useQueryStates, parseAsString, parseAsInteger } from 'nuqs'
 import type { Bridge, BridgeFilters, ConditionLevel } from '@/lib/types'
 import SearchBar from '@/components/bridges/SearchBar'
@@ -13,6 +13,7 @@ import ChatPanel from '@/components/chat/ChatPanel'
 import StatsSidebar from '@/components/bridges/StatsSidebar/StatsSidebar'
 import WorstBridges from '@/components/bridges/WorstBridges/WorstBridges'
 import CountyComparison from '@/components/bridges/CountyComparison/CountyComparison'
+import TrendChart from '@/components/bridges/TrendChart/TrendChart'
 import { cn } from '@/lib/utils'
 
 const BridgeMap = dynamic(() => import('@/components/bridges/BridgeMap'), {
@@ -177,6 +178,17 @@ function ExploreContent() {
               <BarChart2 className="h-3.5 w-3.5" />
               Counties
             </button>
+            <button
+              type="button"
+              onClick={() => setView('trends')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors',
+                view === 'trends' ? 'bg-blue-500 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'
+              )}
+            >
+              <TrendingUp className="h-3.5 w-3.5" />
+              Trends
+            </button>
           </div>
 
           <button
@@ -237,6 +249,10 @@ function ExploreContent() {
           ) : view === 'counties' ? (
             <div className="h-full overflow-y-auto">
               <CountyComparison />
+            </div>
+          ) : view === 'trends' ? (
+            <div className="h-full overflow-y-auto">
+              <TrendChart filters={filters} />
             </div>
           ) : (
             <div className="h-full" style={{ isolation: 'isolate' }}>

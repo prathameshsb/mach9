@@ -97,3 +97,14 @@ export interface CountySummary {
 export interface CountySummaryApiResponse {
   data: CountySummary[]
 }
+
+export interface TrendsDataPoint {
+  year: number
+  good: number
+  fair: number
+  poor: number
+}
+
+export interface TrendsApiResponse {
+  data: TrendsDataPoint[]
+}
